@@ -4,6 +4,12 @@ ARG ALPINE_VERSION=3.21.7
 # FROM alpine:3.23.5
 FROM alpine:${ALPINE_VERSION}
 
+WORKDIR /
+
+RUN mkdir ./logs/
+
+RUN echo "1 -Diretório de trabalho atual : $(pwd)" > /logs/1.txt
+
 ENV MSG="Variável de ambiente criada no Dockerfile"
 
 # INSTALANDO DEPENDENCIAS NO SO
@@ -13,13 +19,13 @@ RUN apk add --no-cache git
 RUN apk add --no-cache nano
 RUN apk add --no-cache unzip
 # Adiciona um usuário no SO (Linux distro Alpine)
-RUN adduser -D Vinicius \
+# RUN adduser -D Vinicius \
 # Adiciona um grupo no SO (Linux distro Alpine)
-    && addgroup dev \
+#    && addgroup dev \
 # Adiciona o usuário Vinicius ao grupo dev
-    && addgroup Vinicius dev
+#    && addgroup Vinicius dev
 # DEFINE O USUÁRIO RESPONSÁVEL PELA EXECUÇÃO DOS PRÓXIMOS RUNs
-USER Vinicius
+# USER Vinicius
 RUN echo ${MSG} > /tmp/arquivo_criado_durante_o_build_da_imagem.txt
 
 # Outros maneiras de escrever (mas que são usadados para instalação de dependências no SO)
@@ -71,8 +77,8 @@ ENV BACK_PRD="https://meuapp.com.br:8000"
 #    VERSAO_APP="1.0.0"
 
 # PERMITE EFETUAR A COPIA DE ARQUIVOS DO HOST PARA O CONTAINER DURANTE O BUILD DA IMAGEM
-# ADD ./exemplo_1.txt /tmp/
-# COPY ./exemplo_1.txt /tmp/teste_copy/
+ADD ./exemplo_1.txt /tmp/
+COPY ./exemplo_1.txt /tmp/teste_copy/
 
 # ADD ./exemplo_2.txt /tmp/
 # COPY ./exemplo_2.txt /tmp/teste_copy/
@@ -96,10 +102,35 @@ ENV BACK_PRD="https://meuapp.com.br:8000"
 
 # COPY . /tmp/copy_all/
 
+WORKDIR /opt/
+RUN echo "2 -Diretório de trabalho atual : $(pwd)" > /logs/2.txt
+
+ADD --chown=Vinicius:dev https://argus-academy.com/cursos/docker_-_dominando_a_criacao_e_o_gerenciamento_de_containers/server.tar.gz ./code/
+
+WORKDIR /opt/code/
+RUN echo "3 -Diretório de trabalho atual : $(pwd)" > /logs/3.txt
+
+RUN tar -xvzf server.tar.gz \
+    && rm -f server.tar.gz
+
 # ADD --chown=Vinicius:dev https://argus-academy.com/cursos/docker_-_dominando_a_criacao_e_o_gerenciamento_de_containers/server.tar.gz /opt/app/
 # RUN cd /opt/app/ \
 #    && tar -xvzf server.tar.gz \
 #    && rm -f server.tar.gz
 
 # COMANDO EXECUTADO SOBRE A IMAGEM QUANDO O CONTAINER É INICIADO
-CMD ["/bin/sh", "-c", "cd /opt/app/ && node server.js"]
+# CMD ["echo", "Parâmetro 1 - Instrução via ENTRYPOINT"]
+# ENTRYPOINT ["echo", "Parâmetro 1 - Instrução via ENTRYPOINT"]
+
+# CMD ["/bin/sh", "-c", "node server.js"]
+# CMD ["/bin/sh", "-c", "cd /opt/app/ && node server.js"]
+
+# Combinando ENTRYPOINT e CMD
+# ENTRYPOINT ["ls"]
+# CMD ["-la"]
+
+# COPY ./dockerfile-entrypoint.sh /start/dockerfile-entrypoint.sh
+# ENTRYPOINT ["/start/dockerfile-entrypoint.sh"]
+
+ENTRYPOINT ["node"]
+CMD ["server.js"]
