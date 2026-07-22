@@ -21,6 +21,9 @@ services:
     restart: "no"
     networks:
       - rede-app
+    depends_on:
+      - front-end
+      - back-end
 
   front-end:
     container_name: front-end
@@ -35,6 +38,8 @@ services:
     restart: "always"
     networks:
       - rede-app
+    depends_on:
+      - back-end
 
   back-end:
     container_name: back-end
@@ -50,6 +55,11 @@ services:
     restart: "on-failure:5"
     networks:
       - rede-app
+    depends_on:
+      - db
+      - nosql
+      - cache
+      - messaging
 
   db:
    #docker run --name some-postgres -e POSTGRES_PASSWORD=mysecretpassword -d postgres
@@ -72,6 +82,8 @@ services:
       - 8090:8080
     networks:
       - rede-app
+    depends_on:
+      - db
 
   nosql:
     container_name: nosql
