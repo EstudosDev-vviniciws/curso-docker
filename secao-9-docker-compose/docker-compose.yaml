@@ -22,8 +22,10 @@ services:
     networks:
       - rede-app
     depends_on:
-      - front-end
-      - back-end
+      front-end:
+        condition: service_started # Espera o serviço front-end iniciar antes de iniciar o serviço http
+      back-end:
+        condition: service_started
 
   front-end:
     container_name: front-end
@@ -56,10 +58,26 @@ services:
     networks:
       - rede-app
     depends_on:
-      - db
-      - nosql
-      - cache
-      - messaging
+      migration:
+        condition: service_completed_successfully # Espera a execução completa do serviço migration antes de iniciar o serviço back-end
+      db:
+        condition: service_started
+      nosql:
+        condition: service_started
+      cache:
+        condition: service_started
+      messaging:
+        condition: service_started
+
+  migration:
+    image: alpine:latest
+    container_name: migration
+    networks:
+      - rede-app
+    command: sleep 10
+    depends_on:
+      db:
+        condition: service_started
 
   db:
    #docker run --name some-postgres -e POSTGRES_PASSWORD=mysecretpassword -d postgres
