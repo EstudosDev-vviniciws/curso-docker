@@ -61,7 +61,7 @@ services:
       migration:
         condition: service_completed_successfully # Espera a execução completa do serviço migration antes de iniciar o serviço back-end
       db:
-        condition: service_started
+        condition: service_healthy # Espera o serviço db estar saudável antes de iniciar o serviço back-end
       nosql:
         condition: service_started
       cache:
@@ -92,6 +92,11 @@ services:
     restart: "unless-stopped"
     networks:
       - rede-app
+    healthcheck: # Monitoramento da saúde do serviço db
+      test: ["CMD-SHELL", "pg_isready -U postgres"] # Comando para verificar se o banco de dados está pronto para aceitar conexões
+      interval: 20s # Intervalo entre as verificações de saúde
+      timeout: 5s # Tempo limite para receber uma resposta 
+      retries: 5 # Numero de tentativas antes de considerar o serviço como não saudável
   
   db-adminer:
     container_name: db-adminer
@@ -101,7 +106,8 @@ services:
     networks:
       - rede-app
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   nosql:
     container_name: nosql
